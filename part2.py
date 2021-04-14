@@ -14,10 +14,10 @@ def norm(vector):
     """Calculate the 1-norm of a vector.
 
     Args:
-        vector (list): The list which represents the vector.
+        vector (list): the list which represents the vector.
 
     Returns:
-        int: Sum of the absolute values of the vector.
+        int: the sum of the vector's absolute values.
     """
     return sum(abs(element) for element in vector)
 
@@ -26,11 +26,11 @@ def deltaList(list1, list2):
     """Calculate the element-wise subtraction of two lists.
 
     Args:
-        list1 (list): The frist list.
-        list2 (list): The second list.
+        list1 (list): the frist list.
+        list2 (list): the second list.
 
     Returns:
-        list: Element-wise subtraction of the two lists.
+        list: the element-wise subtraction of the two lists.
     """
     return [a - b for a, b in zip(list1, list2)]
 
@@ -39,11 +39,11 @@ def sumList(list1, list2):
     """Calculate the element-wise sum of two lists.
 
     Args:
-        list1 (list): The frist list.
-        list2 (list): The second list.
+        list1 (list): the frist list.
+        list2 (list): the second list.
 
     Returns:
-        list: Element-wise sum of the two lists.
+        list: the element-wise sum of the two lists.
     """
     return [a + b for a, b in zip(list1, list2)]
 
@@ -52,11 +52,11 @@ def multiplyList(vector, scalar):
     """Calculate the element-wise product of a vector by a scalar.
 
     Args:
-        vector (list): The list which represents the vector.
-        scalar (float): The value of the scalar.
+        vector (list): the list which represents the vector.
+        scalar (float): the value of the scalar.
 
     Returns:
-        list: Element-wise product of the vector by the scalar.
+        list: the element-wise product of the vector by the scalar.
     """
     return [scalar*element for element in vector]
 
@@ -71,10 +71,11 @@ def compressedSparseRow(matrix):
 
     Args:
         matrix (list): a list of lists.
+
     Returns:
-        values (list): values of the non-zero entries in the matrix
-        rows (list): rows of the non-zero entries in the matrix
-        columns (list): columns of the non-zero entries in the matrix
+        values (list): the values of the non-zero entries in the matrix
+        rows (list): the rows of the non-zero entries in the matrix
+        columns (list): the columns of the non-zero entries in the matrix
     """
     nRows = len(matrix)
     nCols = len(matrix[0])
@@ -158,11 +159,11 @@ def getScores(linkMatrix):
     """Calculate the vector of scores of a network.
 
     Args:
-        linkMatrix (list): The list (of lists) which represents the link
+        linkMatrix (list): the list (of lists) which represents the link
             matrix.
 
     Returns:
-        list: The (final) importance scores of the pages.
+        list: the (final) importance scores of the pages.
     """
     epsilon = 1E-5
     m = 15E-2
