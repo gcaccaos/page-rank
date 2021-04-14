@@ -22,7 +22,7 @@ def norm(vector):
     return sum(abs(element) for element in vector)
 
 
-def deltaList(list1, list2):
+def delta_list(list1, list2):
     """Calculate the element-wise subtraction of two lists.
 
     Args:
@@ -35,7 +35,7 @@ def deltaList(list1, list2):
     return [a - b for a, b in zip(list1, list2)]
 
 
-def sumList(list1, list2):
+def sum_list(list1, list2):
     """Calculate the element-wise sum of two lists.
 
     Args:
@@ -48,7 +48,7 @@ def sumList(list1, list2):
     return [a + b for a, b in zip(list1, list2)]
 
 
-def multiplyList(vector, scalar):
+def multiply_list(vector, scalar):
     """Calculate the element-wise product of a vector by a scalar.
 
     Args:
@@ -61,12 +61,12 @@ def multiplyList(vector, scalar):
     return [scalar*element for element in vector]
 
 
-def scoresRank(scores):
+def scores_rank(scores):
     """Return the list of pages in decreasing order of score."""
     return sorted(range(len(scores)), key=scores.__getitem__, reverse=True)
 
 
-def compressedSparseRow(matrix):
+def compressed_sparse_row(matrix):
     """Perform the CSR compression (in "row-major" order) on a matrix.
 
     Args:
@@ -95,7 +95,7 @@ def compressedSparseRow(matrix):
     return values, rows, columns
 
 
-def getNumPages(numGroups):
+def get_num_pages(numGroups):
     """Return the number of pages of a network."""
     numChiefs = numGroups
     numIndians = sum(page for page in range(1, numGroups + 1))
@@ -103,9 +103,9 @@ def getNumPages(numGroups):
     return numChiefs + numIndians
 
 
-def createAdjacencyMatrix(numGroups):
+def create_adjacency_matrix(numGroups):
     """Return the adjacency matrix of a network."""
-    numPages = getNumPages(numGroups)
+    numPages = get_num_pages(numGroups)
     chiefsList = []
 
     # Create adjency matrix (full of zeros)
@@ -134,15 +134,15 @@ def createAdjacencyMatrix(numGroups):
     return adjacencyMatrix
 
 
-def createLinkMatrix(numGroups):
+def create_link_matrix(numGroups):
     """Return the link matrix of a network given its adjacency matrix.
 
     To do this, the columns of the adjacency matrix must be normalized (this
     fixes the weights of the links that comes to the same page).
     """
-    numPages = getNumPages(numGroups)
+    numPages = get_num_pages(numGroups)
 
-    adjacencyMatrix = createAdjacencyMatrix(numGroups)
+    adjacencyMatrix = create_adjacency_matrix(numGroups)
     linkMatrix = [row for row in adjacencyMatrix]
 
     for page in range(numPages):
@@ -155,7 +155,7 @@ def createLinkMatrix(numGroups):
     return linkMatrix
 
 
-def getScores(linkMatrix):
+def get_scores(linkMatrix):
     """Calculate the vector of scores of a network.
 
     Args:
@@ -170,7 +170,7 @@ def getScores(linkMatrix):
 
     # Apply sparse row compression on the link matrix:
     # get the non-zero entries values and positions
-    values, rows, columns = compressedSparseRow(linkMatrix)
+    values, rows, columns = compressed_sparse_row(linkMatrix)
 
     numPages = len(linkMatrix)
     initialScores = [1./numPages]*numPages
@@ -180,39 +180,39 @@ def getScores(linkMatrix):
     y = [0]*numPages
     for (link, page, otherPage) in zip(values, rows, columns):
         y[page] += link*oldScores[otherPage]
-    y = multiplyList(y, 1./norm(y))
+    y = multiply_list(y, 1./norm(y))
 
-    normInitialScores = multiplyList(initialScores, m)
-    normNewScores = multiplyList(y, 1 - m)
-    newScores = sumList(normNewScores, normInitialScores)
+    normInitialScores = multiply_list(initialScores, m)
+    normNewScores = multiply_list(y, 1 - m)
+    newScores = sum_list(normNewScores, normInitialScores)
 
-    deltaScores = deltaList(newScores, oldScores)
+    deltaScores = delta_list(newScores, oldScores)
 
     # Following iterations
     while norm(deltaScores) >= epsilon:
         oldScores = newScores
         for (link, page, otherPage) in zip(values, rows, columns):
             y[page] += link*oldScores[otherPage]
-        y = multiplyList(y, 1./norm(y))
+        y = multiply_list(y, 1./norm(y))
 
-        normInitialScores = multiplyList(initialScores, m)
-        normNewScores = multiplyList(y, 1 - m)
-        newScores = sumList(normNewScores, normInitialScores)
+        normInitialScores = multiply_list(initialScores, m)
+        normNewScores = multiply_list(y, 1 - m)
+        newScores = sum_list(normNewScores, normInitialScores)
 
-        deltaScores = deltaList(newScores, oldScores)
+        deltaScores = delta_list(newScores, oldScores)
 
     return newScores
 
 
-def pageRank(linkMatrix):
+def page_rank(linkMatrix):
     """Rank the pages and print the ranking-score table."""
     numPages = len(linkMatrix)
     numGroups = int(((8*numPages + 9)**0.5 - 3)/2)
 
     chiefsList = [int(group*(group + 3)/2) for group in range(numGroups)]
 
-    scores = getScores(linkMatrix)
-    rankingList = scoresRank(scores)
+    scores = get_scores(linkMatrix)
+    rankingList = scores_rank(scores)
 
     printedGroups = []
     print('Rank\tPage(s)\t\tGroup\tImportance score')
@@ -247,5 +247,5 @@ def pageRank(linkMatrix):
 if __name__ == "__main__":
     numGroups = 20					# this value can be changed (default = 20)
 
-    linkMatrix = createLinkMatrix(numGroups)
-    pageRank(linkMatrix)
+    linkMatrix = create_link_matrix(numGroups)
+    page_rank(linkMatrix)

@@ -22,7 +22,7 @@ def norm(vector):
     return sum(abs(element) for element in vector)
 
 
-def deltaList(list1, list2):
+def delta_list(list1, list2):
     """Calculate the element-wise subtraction of two lists.
 
     Args:
@@ -35,7 +35,7 @@ def deltaList(list1, list2):
     return [a - b for a, b in zip(list1, list2)]
 
 
-def sumList(list1, list2):
+def sum_list(list1, list2):
     """Calculate the element-wise sum of two lists.
 
     Args:
@@ -48,7 +48,7 @@ def sumList(list1, list2):
     return [a + b for a, b in zip(list1, list2)]
 
 
-def multiplyList(vector, scalar):
+def multiply_list(vector, scalar):
     """Calculate the element-wise product of a vector by a scalar.
 
     Args:
@@ -61,7 +61,7 @@ def multiplyList(vector, scalar):
     return [scalar*element for element in vector]
 
 
-def dotProduct(linkMatrix, scores):
+def dot_product(linkMatrix, scores):
     """Calculate the dot product of the vector of scores by the link matrix.
 
     Args:
@@ -88,7 +88,7 @@ def dotProduct(linkMatrix, scores):
     return newScores
 
 
-def getScores(linkMatrix):
+def get_scores(linkMatrix):
     """Calculate the vector of scores of a network.
 
     Args:
@@ -106,36 +106,36 @@ def getScores(linkMatrix):
 
     # First iteration
     oldScores = initialScores
-    newScores = dotProduct(linkMatrix, oldScores)
+    newScores = dot_product(linkMatrix, oldScores)
 
-    normInitialScores = multiplyList(initialScores, m)
-    normNewScores = multiplyList(newScores, 1 - m)
-    newScores = sumList(normNewScores, normInitialScores)
+    normInitialScores = multiply_list(initialScores, m)
+    normNewScores = multiply_list(newScores, 1 - m)
+    newScores = sum_list(normNewScores, normInitialScores)
 
-    deltaScores = deltaList(newScores, oldScores)
+    deltaScores = delta_list(newScores, oldScores)
 
     # Following iterations
     while norm(deltaScores) >= epsilon:
         oldScores = newScores
-        newScores = dotProduct(linkMatrix, oldScores)
+        newScores = dot_product(linkMatrix, oldScores)
 
-        normNewScores = multiplyList(newScores, 1 - m)
-        newScores = sumList(normNewScores, normInitialScores)
+        normNewScores = multiply_list(newScores, 1 - m)
+        newScores = sum_list(normNewScores, normInitialScores)
 
-        deltaScores = deltaList(newScores, oldScores)
+        deltaScores = delta_list(newScores, oldScores)
 
     return newScores
 
 
-def scoresRank(scores):
+def scores_rank(scores):
     """Return the list of pages in decreasing order of score."""
     return sorted(range(len(scores)), key=scores.__getitem__, reverse=True)
 
 
-def pageRank(linkMatrix):
+def page_rank(linkMatrix):
     """Rank the pages and print the ranking-score table."""
-    scores = getScores(linkMatrix)
-    rankingList = scoresRank(scores)
+    scores = get_scores(linkMatrix)
+    rankingList = scores_rank(scores)
 
     print('Rank\tPage\tImportance score')
     rank = 0
@@ -156,4 +156,4 @@ if __name__ == "__main__":
          [0, 0, 1/2, 0, 0, 1, 0, 0],
          [0, 0, 0, 0, 0, 0, 1, 0]]
 
-    pageRank(A)
+    page_rank(A)
