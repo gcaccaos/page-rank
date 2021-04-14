@@ -61,11 +61,11 @@ def multiply_list(vector, scalar):
     return [scalar*element for element in vector]
 
 
-def dot_product(linkMatrix, scores):
+def dot_product(link_matrix, scores):
     """Calculate the dot product of the vector of scores by the link matrix.
 
     Args:
-        linkMatrix (list): the list (of lists) which represents the link
+        link_matrix (list): the list (of lists) which represents the link
             matrix.
         scores (list): the list which represents the importance scores of the
             pages.
@@ -74,25 +74,25 @@ def dot_product(linkMatrix, scores):
         list: the new importance scores of the pages after applying the link
         matrix.
     """
-    newScores = []
+    new_scores = []
 
-    numPages = len(linkMatrix)
-    pagesList = range(numPages)
+    num_pages = len(link_matrix)
+    pages_list = range(num_pages)
 
-    for page in pagesList:
-        newScore = 0
-        for otherPage in pagesList:
-            newScore += linkMatrix[page][otherPage]*scores[otherPage]
-        newScores.append(newScore)
+    for page in pages_list:
+        new_score = 0
+        for other_page in pages_list:
+            new_score += link_matrix[page][other_page]*scores[other_page]
+        new_scores.append(new_score)
 
-    return newScores
+    return new_scores
 
 
-def get_scores(linkMatrix):
+def get_scores(link_matrix):
     """Calculate the vector of scores of a network.
 
     Args:
-        linkMatrix (list): the list (of lists) which represents the link
+        link_matrix (list): the list (of lists) which represents the link
             matrix.
 
     Returns:
@@ -101,30 +101,30 @@ def get_scores(linkMatrix):
     epsilon = 1E-5
     m = 15E-2
 
-    numPages = len(linkMatrix)
-    initialScores = [1./numPages]*numPages
+    num_pages = len(link_matrix)
+    initial_scores = [1./num_pages]*num_pages
 
     # First iteration
-    oldScores = initialScores
-    newScores = dot_product(linkMatrix, oldScores)
+    old_scores = initial_scores
+    new_scores = dot_product(link_matrix, old_scores)
 
-    normInitialScores = multiply_list(initialScores, m)
-    normNewScores = multiply_list(newScores, 1 - m)
-    newScores = sum_list(normNewScores, normInitialScores)
+    norm_initial_scores = multiply_list(initial_scores, m)
+    norm_new_scores = multiply_list(new_scores, 1 - m)
+    new_scores = sum_list(norm_new_scores, norm_initial_scores)
 
-    deltaScores = delta_list(newScores, oldScores)
+    delta_scores = delta_list(new_scores, old_scores)
 
     # Following iterations
-    while norm(deltaScores) >= epsilon:
-        oldScores = newScores
-        newScores = dot_product(linkMatrix, oldScores)
+    while norm(delta_scores) >= epsilon:
+        old_scores = new_scores
+        new_scores = dot_product(link_matrix, old_scores)
 
-        normNewScores = multiply_list(newScores, 1 - m)
-        newScores = sum_list(normNewScores, normInitialScores)
+        norm_new_scores = multiply_list(new_scores, 1 - m)
+        new_scores = sum_list(norm_new_scores, norm_initial_scores)
 
-        deltaScores = delta_list(newScores, oldScores)
+        delta_scores = delta_list(new_scores, old_scores)
 
-    return newScores
+    return new_scores
 
 
 def scores_rank(scores):
@@ -132,14 +132,14 @@ def scores_rank(scores):
     return sorted(range(len(scores)), key=scores.__getitem__, reverse=True)
 
 
-def page_rank(linkMatrix):
+def page_rank(link_matrix):
     """Rank the pages and print the ranking-score table."""
-    scores = get_scores(linkMatrix)
-    rankingList = scores_rank(scores)
+    scores = get_scores(link_matrix)
+    ranking_list = scores_rank(scores)
 
     print('Rank\tPage\tImportance score')
     rank = 0
-    for page in rankingList:
+    for page in ranking_list:
         score = scores[page]
         print(f'{rank + 1}\t{page + 1}\t{score:.5f}')
         rank += 1

@@ -77,15 +77,15 @@ def compressed_sparse_row(matrix):
         rows (list): the rows of the non-zero entries in the matrix
         columns (list): the columns of the non-zero entries in the matrix
     """
-    nRows = len(matrix)
-    nCols = len(matrix[0])
+    n_rows = len(matrix)
+    n_cols = len(matrix[0])
 
     # Data structure for the non-zero entries
     values, rows, columns = [], [], []
 
     # Row-wise loop through the matrix
-    for row in range(nRows):
-        for column in range(nCols):
+    for row in range(n_rows):
+        for column in range(n_cols):
             value = matrix[row][column]
             if value != 0:
                 values.append(value)
@@ -95,71 +95,71 @@ def compressed_sparse_row(matrix):
     return values, rows, columns
 
 
-def get_num_pages(numGroups):
+def get_num_pages(num_groups):
     """Return the number of pages of a network."""
-    numChiefs = numGroups
-    numIndians = sum(page for page in range(1, numGroups + 1))
+    num_chiefs = num_groups
+    num_indians = sum(page for page in range(1, num_groups + 1))
 
-    return numChiefs + numIndians
+    return num_chiefs + num_indians
 
 
-def create_adjacency_matrix(numGroups):
+def create_adjacency_matrix(num_groups):
     """Return the adjacency matrix of a network."""
-    numPages = get_num_pages(numGroups)
-    chiefsList = []
+    num_pages = get_num_pages(num_groups)
+    chiefs_list = []
 
     # Create adjency matrix (full of zeros)
-    adjacencyMatrix = [
-        [0 for column in range(numPages)] for row in range(numPages)
+    adjacency_matrix = [
+        [0 for column in range(num_pages)] for row in range(num_pages)
     ]
 
     # Handle links to pages (including chiefs) that belong to the same group
-    for group in range(numGroups):
-        chiefPage = int(group*(group + 3)/2)
-        chiefsList.append(chiefPage)
+    for group in range(num_groups):
+        chief_page = int(group*(group + 3)/2)
+        chiefs_list.append(chief_page)
 
-        groupPages = list(range(chiefPage, chiefPage + group + 2))
+        group_pages = list(range(chief_page, chief_page + group + 2))
 
-        for thisPage in groupPages:
-            targetPages = [page for page in groupPages if page != thisPage]
-            for targetPage in targetPages:
-                adjacencyMatrix[thisPage][targetPage] = 1
+        for this_page in group_pages:
+            target_pages = [page for page in group_pages if page != this_page]
+            for target_page in target_pages:
+                adjacency_matrix[this_page][target_page] = 1
 
     # Handle links between chief pages
-    for chiefPage in chiefsList:
-        targetPages = [page for page in chiefsList if page != chiefPage]
-        for targetPage in targetPages:
-            adjacencyMatrix[chiefPage][targetPage] = 1
+    for chief_page in chiefs_list:
+        target_pages = [page for page in chiefs_list if page != chief_page]
+        for target_page in target_pages:
+            adjacency_matrix[chief_page][target_page] = 1
 
-    return adjacencyMatrix
+    return adjacency_matrix
 
 
-def create_link_matrix(numGroups):
+def create_link_matrix(num_groups):
     """Return the link matrix of a network given its adjacency matrix.
 
     To do this, the columns of the adjacency matrix must be normalized (this
     fixes the weights of the links that comes to the same page).
     """
-    numPages = get_num_pages(numGroups)
+    num_pages = get_num_pages(num_groups)
 
-    adjacencyMatrix = create_adjacency_matrix(numGroups)
-    linkMatrix = [row for row in adjacencyMatrix]
+    adjacency_matrix = create_adjacency_matrix(num_groups)
+    link_matrix = [row for row in adjacency_matrix]
 
-    for page in range(numPages):
-        numIncomingLinks = sum(
-            pointedBy[page] for pointedBy in adjacencyMatrix
+    for page in range(num_pages):
+        num_incoming_links = sum(
+            pointed_by[page] for pointed_by in adjacency_matrix
         )
-        for otherPage in linkMatrix:
-            otherPage[page] /= numIncomingLinks
+        for other_page in link_matrix:
+            other_page[page] /= num_incoming_links
 
-    return linkMatrix
+    return link_matrix
 
 
-def get_scores(linkMatrix):
+def get_scores(link_matrix):
     """Calculate the vector of scores of a network.
 
     Args:
-        linkMatrix (list): the list (of lists) which represents the link
+        link_matrix (list): the list (of lists) which represents the link
             matrix.
 
     Returns:
@@ -170,82 +170,82 @@ def get_scores(linkMatrix):
 
     # Apply sparse row compression on the link matrix:
     # get the non-zero entries values and positions
-    values, rows, columns = compressed_sparse_row(linkMatrix)
+    values, rows, columns = compressed_sparse_row(link_matrix)
 
-    numPages = len(linkMatrix)
-    initialScores = [1./numPages]*numPages
+    num_pages = len(link_matrix)
+    initial_scores = [1./num_pages]*num_pages
 
     # First iteration
-    oldScores = initialScores
-    y = [0]*numPages
-    for (link, page, otherPage) in zip(values, rows, columns):
-        y[page] += link*oldScores[otherPage]
+    old_scores = initial_scores
+    y = [0]*num_pages
+    for (link, page, other_page) in zip(values, rows, columns):
+        y[page] += link*old_scores[other_page]
     y = multiply_list(y, 1./norm(y))
 
-    normInitialScores = multiply_list(initialScores, m)
-    normNewScores = multiply_list(y, 1 - m)
-    newScores = sum_list(normNewScores, normInitialScores)
+    norm_initial_scores = multiply_list(initial_scores, m)
+    norm_new_scores = multiply_list(y, 1 - m)
+    new_scores = sum_list(norm_new_scores, norm_initial_scores)
 
-    deltaScores = delta_list(newScores, oldScores)
+    delta_scores = delta_list(new_scores, old_scores)
 
     # Following iterations
-    while norm(deltaScores) >= epsilon:
-        oldScores = newScores
-        for (link, page, otherPage) in zip(values, rows, columns):
-            y[page] += link*oldScores[otherPage]
+    while norm(delta_scores) >= epsilon:
+        old_scores = new_scores
+        for (link, page, other_page) in zip(values, rows, columns):
+            y[page] += link*old_scores[other_page]
         y = multiply_list(y, 1./norm(y))
 
-        normInitialScores = multiply_list(initialScores, m)
-        normNewScores = multiply_list(y, 1 - m)
-        newScores = sum_list(normNewScores, normInitialScores)
+        norm_initial_scores = multiply_list(initial_scores, m)
+        norm_new_scores = multiply_list(y, 1 - m)
+        new_scores = sum_list(norm_new_scores, norm_initial_scores)
 
-        deltaScores = delta_list(newScores, oldScores)
+        delta_scores = delta_list(new_scores, old_scores)
 
-    return newScores
+    return new_scores
 
 
-def page_rank(linkMatrix):
+def page_rank(link_matrix):
     """Rank the pages and print the ranking-score table."""
-    numPages = len(linkMatrix)
-    numGroups = int(((8*numPages + 9)**0.5 - 3)/2)
+    num_pages = len(link_matrix)
+    num_groups = int(((8*num_pages + 9)**0.5 - 3)/2)
 
-    chiefsList = [int(group*(group + 3)/2) for group in range(numGroups)]
+    chiefs_list = [int(group*(group + 3)/2) for group in range(num_groups)]
 
-    scores = get_scores(linkMatrix)
-    rankingList = scores_rank(scores)
+    scores = get_scores(link_matrix)
+    ranking_list = scores_rank(scores)
 
-    printedGroups = []
+    printed_groups = []
     print('Rank\tPage(s)\t\tGroup\tImportance score')
 
     rank = 0
-    for page in rankingList:
+    for page in ranking_list:
         # Find chief and group of this page
         chief = [
-            chiefPage for chiefPage in chiefsList if chiefPage <= page
+            chief_page for chief_page in chiefs_list if chief_page <= page
         ].pop()
         group = int(((8*chief + 9)**0.5 - 3)/2)
 
         # Handle chief pages
-        if page in chiefsList:
+        if page in chiefs_list:
             score = scores[page]
             print(f'{rank + 1: >2}\t{page + 1: >3}\t\t{group + 1: >2}\t{score:.5f}')
             rank += 1
 
         # Handle indian pages
-        elif group not in printedGroups:
+        elif group not in printed_groups:
             score = scores[page]
-            lastGroupPage = chief + group + 1
-            if lastGroupPage != page:
-                print(f'{rank + 1: >2}\t{page + 1: >3} to {lastGroupPage + 1: >3}\t{group + 1: >2}\t{score:.5f}')
+            last_group_page = chief + group + 1
+            if last_group_page != page:
+                print(f'{rank + 1: >2}\t{page + 1: >3} to {last_group_page + 1: >3}\t{group + 1: >2}\t{score:.5f}')
             else:
                 print(f'{rank + 1: >2}\t{page + 1: >3}\t\t{group + 1: >2}\t{score:.5f}')
-            printedGroups.append(group)
+            printed_groups.append(group)
             rank += 1
 
 
 # Main program
 if __name__ == "__main__":
-    numGroups = 20					# this value can be changed (default = 20)
+    num_groups = 20					# this value can be changed (default = 20)
 
-    linkMatrix = create_link_matrix(numGroups)
-    page_rank(linkMatrix)
+    link_matrix = create_link_matrix(num_groups)
+    page_rank(link_matrix)
